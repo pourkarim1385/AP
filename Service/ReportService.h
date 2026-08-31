@@ -1,19 +1,19 @@
-#ifndef TRY1_REPORTSERVICE_H
-#define TRY1_REPORTSERVICE_H
-#include "../DAL/Repository.h"
+#pragma once
 
+#include "../DAL/Repository.h"
 
 class ReportService {
 private:
     Repository& repo;
     int lastId;
     int generateNextId();
-    public:
+    void validatePenalty(PenaltyType type, int amount, int matchCount);
+
+public:
     ReportService(Repository& repo);
     void submitReport(const string& senderUsername, const string& reportedUsername, const string& reason);
+    void dismissReport(int id, PrivilegeLevel privilegeLevel);
+    void addPenalty(int reportId, PenaltyType type, int amount, int matchCount, PrivilegeLevel privilegeLevel);
     string getReports(PrivilegeLevel access);
     string getUserProfile(const string& username);
 };
-
-
-#endif //TRY1_REPORTSERVICE_H

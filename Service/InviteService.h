@@ -1,5 +1,5 @@
-#ifndef TRY1_INVITESERVICE_H
-#define TRY1_INVITESERVICE_H
+#pragma once
+
 #include <memory>
 
 #include "MatchMakingService.h"
@@ -15,15 +15,12 @@ class InviteService {
     int lastId;
 
     int generateNextId();
-    void addInvite(const string& from, const string& to, matchType type);
-    string matchTypeToString(matchType type) const;
+    void addInvite(const string& from, const string& to, MatchType type);
+    string matchTypeToString(MatchType type) const;
 public:
     InviteService(Repository& repo, MatchMakingService& matchMakingService);
-    void newInvite(const string& from, const string& to, const string& type);
-    void accpeptInvite(int id);
-    void rejectInvite(int id);
+    void newInvite(const string& from, const string& to, MatchType type);
+    void accpeptInvite(const string& username, int id, PrivilegeLevel privilegeLevel);
+    void rejectInvite(const string& username, int id, PrivilegeLevel privilegeLevel);
     string getPendingInvites(const string& user) const;
 };
-
-
-#endif //TRY1_INVITESERVICE_H

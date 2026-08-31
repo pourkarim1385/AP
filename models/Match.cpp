@@ -2,48 +2,70 @@
 
 #include <sstream>
 #include "ServiceException.h"
+#include "../DAL/Repository.h"
 
 Match::Match(int id, const vector<string>& players) : playersUsername(players), id(id){
     status = onGoing;
     turn = 1;
 }
 
-CasualMath::CasualMath(int id, const vector<string> &players) : Match(id, players) {
+CasualMatch::CasualMatch(int id, const vector<string> &players) : Match(id, players) {
     type = casual;
     status = onGoing;
     turn = 1;
     for (auto& player : players) {
-        casualPlayer tempPlayer(player);
+        MatchPlayer tempPlayer;
+        tempPlayer.name = player;
         tempPlayer.bullets = 1;
+        tempPlayer.lives = 1;
         tempPlayer.moves.push_back("");
         tempPlayer.moves.push_back("");
-        casualPlayers[player] = tempPlayer;
+        matchPlayers[player] = tempPlayer;
     }
 }
 
-bool CasualMath::playerHasMoved(const string& player) {
-    if (casualPlayers[player].moves[turn].empty())
+RankedMatch::RankedMatch(const int id, const vector<string> &players, Repository& repo) : Match(id, players) {
+    type = ranked;
+    status = onGoing;
+    turn = 1;
+    for (auto& playerUsername : players) {
+        const auto player = static_pointer_cast<Player>(repo.getUserByName(playerUsername));
+        const int bulletPenalty = player->getPenalty(PenaltyType::Bullet);
+        const int headPenalty = player->getPenalty(PenaltyType::Health);
+
+        MatchPlayer tempPlayer;
+        tempPlayer.name = playerUsername;
+        tempPlayer.bullets = 3 - bulletPenalty;
+        tempPlayer.lives = 3 - headPenalty;
+        tempPlayer.moves.push_back("");
+        tempPlayer.moves.push_back("");
+        matchPlayers[playerUsername] = tempPlayer;
+    }
+}
+
+bool Match::playerHasMoved(const string& player) {
+    if (matchPlayers[player].moves[turn].empty())
         return false;
     return true;
 }
 
-void CasualMath::updatePlayerMoves(const string &player, const string &move) {
+void Match::updatePlayerMoves(const string &player, const string &move) {
     if (playerHasMoved(player)) {
         throw ServiceException(ErrorType::PermissionDenied, "Player has already moved");
     }
-    casualPlayers[player].moves[turn] = move;
+    matchPlayers[player].moves[turn] = move;
 }
 
-void CasualMath::addBullet(const string& player) {
-    casualPlayers[player].bullets++;
+void Match::addBullet(const string& player) {
+    matchPlayers[player].bullets++;
 }
 
-bool CasualMath::playerHasBullet(const string& player) {
-    return casualPlayers[player].bullets > 0;
+bool Match::playerHasBullet(const string& player) {
+    return matchPlayers[player].bullets > 0;
 }
 
-bool CasualMath::turnIsFinished() {
-    for (auto& player : casualPlayers) {
+bool Match::turnIsFinished() {
+    for (auto& player : matchPlayers) {
         if (!playerHasMoved(player.first)) {
             return false;
         }
@@ -51,68 +73,34 @@ bool CasualMath::turnIsFinished() {
     return true;
 }
 
-string CasualMath::getRoundWinner() {
-    const string& p1 = playersUsername[0];
-    const string& p2 = playersUsername[1];
-
-    if (casualPlayers.find(p1) == casualPlayers.end() || casualPlayers.find(p2) == casualPlayers.end()) {
-        throw ServiceException(ErrorType::PermissionDenied, "Players not found");
-    }
-
-    auto& cp1 = casualPlayers[p1];
-    auto& cp2 = casualPlayers[p2];
-
-    const string& m1 = cp1.moves.back();
-    const string& m2 = cp2.moves.back();
-
-    //if (m1 == "shoot" && cp1.bullets <= 0) {
-    //    throw runtime_error(p1 + " tried to shoot without bullets.");
-    //}
-    //if (m2 == "shoot" && cp2.bullets <= 0) {
-    //    throw runtime_error(p2 + " tried to shoot without bullets.");
-    //}
-
-    if (m1 == m2) {
-        return "draw";
-    }
-
-    if (m1 == "shoot" && m2 == "reload") return p1;
-    if (m2 == "shoot" && m1 == "reload") return p2;
-
-    if ((m1 == "shoot" && m2 == "defend") || (m2 == "shoot" && m1 == "defend")) {
-        return "draw";
-    }
-
-    if ((m1 == "reload" && m2 == "defend") || (m2 == "reload" && m1 == "defend")) {
-        return "draw";
-    }
-
-    return "draw";
+int RankedMatch::getWinnerHealthBonus() {
+    const string winner = getRoundWinner();
+    return matchPlayers[winner].lives * 25;
 }
 
-void CasualMath::deductBullet(const string& player) {
-    casualPlayers[player].bullets--;
+void Match::deductBullet(const string& player) {
+    matchPlayers[player].bullets--;
 }
 
-matchType CasualMath::getType() {
+MatchType Match::getType() {
     return type;
 }
 
-void CasualMath::goNextRound() {
+void Match::goNextRound() {
     if (!turnIsFinished())
         throw ServiceException(ErrorType::BadRequest, "Turn is not finished");
     turn++;
-    for (auto& player : casualPlayers) {
+    for (auto& player : matchPlayers) {
         player.second.moves.push_back("");
     }
 }
 
-void CasualMath::closeMatch() {
+void Match::closeMatch() {
     winner = getRoundWinner();
-    status = matchSatus::finished;
+    status = MatchStatus::finished;
 }
 
-string CasualMath::getStatus(const string& playerName) {
+string CasualMatch::getStatus(const string& playerName) {
     ostringstream result;
     result << "Turn " << turn << endl;
 
@@ -124,26 +112,100 @@ string CasualMath::getStatus(const string& playerName) {
         }
     }
 
-    auto& me = casualPlayers[playerName];
-    auto& opponent = casualPlayers[opponentName];
+    auto& me = matchPlayers[playerName];
+    auto& opponent = matchPlayers[opponentName];
 
     string myCurrentStatus = playerHasMoved(playerName) ? me.moves.back() : "pending";
     string oppCurrentStatus = playerHasMoved(opponentName) ? "played" : "pending";
-    result << "You: " << myCurrentStatus << endl << "Your opponent: " << oppCurrentStatus << endl << "History: " << endl;
-    result << "Opponent’s moves:   Your moves:" << endl;
-
-    if (turn < 2) {
-        result << "Empty" << endl;
-    }
+    result << "You: " << myCurrentStatus << endl << "Your opponent: " << oppCurrentStatus << endl << "History:" << endl;
+    result << "Opponent's moves:   Your moves:" << endl;
 
     for (int turnIndex = 1; turnIndex < turn; turnIndex++) {
-        string oppMove = casualPlayers[opponentName].moves[turnIndex];
-        string myMove = casualPlayers[playerName].moves[turnIndex];
+        string oppMove = matchPlayers[opponentName].moves[turnIndex];
+        string myMove = matchPlayers[playerName].moves[turnIndex];
         result << oppMove;
-        for (int i = 0; i < 20 - myMove.length(); i++)
+        for (int i = 0; i < 20 - oppMove.length(); i++)
             result << " ";
         result << myMove << endl;
     }
-    result << "Your remaining bullets: " << me.bullets;
+    result << "Your remaining bullets: " << me.bullets << endl;
+    return result.str();
+}
+
+string Match::getRoundWinner() {
+    if (playersUsername.size() < 2) return "";
+
+    const string p1 = playersUsername[0];
+    const string p2 = playersUsername[1];
+
+    const int p1Lives = matchPlayers[p1].lives;
+    const int p2Lives = matchPlayers[p2].lives;
+
+    if (p1Lives <= 0 && p2Lives <= 0) {
+        return "draw";
+    } else if (p1Lives <= 0) {
+        return p2;
+    } else if (p2Lives <= 0) {
+        return p1;
+    }
+
+    return "draw";
+}
+
+void Match::applyRoundChange() {
+    string p1 = playersUsername[0];
+    string p2 = playersUsername[1];
+
+    auto& mp1 = matchPlayers[p1];
+    auto& mp2 = matchPlayers[p2];
+
+    string m1 = mp1.moves[turn];
+    string m2 = mp2.moves[turn];
+
+    if (m1 == "shoot") mp1.bullets--;
+    else if (m1 == "reload") mp1.bullets++;
+
+    if (m2 == "shoot") mp2.bullets--;
+    else if (m2 == "reload") mp2.bullets++;
+
+    if (m1 == "shoot" && m2 != "defend" && m2 != "shoot") {
+        mp2.lives--;
+    }
+    else if (m2 == "shoot" && m1 != "defend" && m1 != "shoot") {
+        mp1.lives--;
+    }
+}
+
+string RankedMatch::getStatus(const string& playerName) {
+    ostringstream result;
+    result << "Turn " << turn << endl;
+
+    string opponentName = "";
+    for (const auto& name : playersUsername) {
+        if (name != playerName) {
+            opponentName = name;
+            break;
+        }
+    }
+
+    auto& me = matchPlayers[playerName];
+    auto& opponent = matchPlayers[opponentName];
+
+    string myCurrentStatus = playerHasMoved(playerName) ? me.moves.back() : "pending";
+    string oppCurrentStatus = playerHasMoved(opponentName) ? "played" : "pending";
+    result << "You: " << myCurrentStatus << endl << "Your opponent: " << oppCurrentStatus << endl << "History:" << endl;
+    result << "Opponent's moves:   Your moves:" << endl;
+
+    for (int turnIndex = 1; turnIndex < turn; turnIndex++) {
+        string oppMove = matchPlayers[opponentName].moves[turnIndex];
+        string myMove = matchPlayers[playerName].moves[turnIndex];
+        result << oppMove;
+        for (int i = 0; i < 20 - oppMove.length(); i++)
+            result << " ";
+        result << myMove << endl;
+    }
+    result << "Your remaining bullets: " << me.bullets << endl;
+    result << "Your remaining health: " << me.lives << endl;
+
     return result.str();
 }

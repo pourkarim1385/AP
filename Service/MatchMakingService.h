@@ -1,11 +1,6 @@
-#ifndef TRY1_MATCHMAKINGSERVICE_H
-#define TRY1_MATCHMAKINGSERVICE_H
+#pragma once
+
 #include "../DAL/Repository.h"
-
-
-enum SortType {
-    ascending ,descending
-};
 
 class MatchMakingService {
     private:
@@ -13,11 +8,8 @@ class MatchMakingService {
     int lastId;
     int generateNextId();
     public:
-    explicit MatchMakingService(Repository& repo) : repo(repo) {lastId = 0;};
-    string getOpponentList(const string& player,const matchType type,const SortType sortType);
-    void updatePlayerStatus(const string& player,const matchType type,const playerStatus& playerStatus);
-    void startMatch(vector<string>& players, matchType type);
+    explicit MatchMakingService(Repository& repo) : repo(repo), lastId(0) {};
+    string getOpponentList(const string& player,const MatchType type,const SortType sortType);
+    void updatePlayerStatus(const string& player,const MatchType type,const playerStatus& playerStatus);
+    void startMatch(vector<string>& players, MatchType type);
 };
-
-
-#endif //TRY1_MATCHMAKINGSERVICE_H

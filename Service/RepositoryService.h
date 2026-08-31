@@ -1,5 +1,5 @@
-#ifndef TRY1_REPOSITORYSERVICE_H
-#define TRY1_REPOSITORYSERVICE_H
+#pragma once
+
 #include <string>
 
 
@@ -13,6 +13,3 @@ class RepositoryService {
     explicit RepositoryService(Repository& repo) : repo(repo) {};
     void importData(const string& usersCsvPath, const string& adminsCsvPath);
 };
-
-
-#endif //TRY1_REPOSITORYSERVICE_H

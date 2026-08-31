@@ -1,5 +1,5 @@
-#ifndef TRY1_SERVICEEXCEPTION_H
-#define TRY1_SERVICEEXCEPTION_H
+#pragma once
+
 #include <exception>
 #include <string>
 
@@ -9,21 +9,18 @@ enum class ErrorType {
     BadRequest,
     PermissionDenied,
     NotFound,
+    MisMatch,
 };
-
 
 class ServiceException : public exception {
 private:
     ErrorType type;
     string detail;
 public:
-    ServiceException(ErrorType type, std::string detail)
-        : type(type), detail(std::move(detail)) {
+    ServiceException(ErrorType type, string detail = "No detail added")
+        : type(type), detail(detail) {
     }
     ErrorType getType() const{return type;}
     const char* what() const noexcept override;
     string getDetail() const {return detail;}
 };
-
-
-#endif //TRY1_SERVICEEXCEPTION_H

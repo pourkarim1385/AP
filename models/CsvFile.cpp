@@ -43,7 +43,8 @@ vector<unique_ptr<Player>> UserCsvFile::exportFile() {
         try {
             const string username = data[usernameIndex], password = data[passwordIndex];
             const int xp = stoi(data[xpIndex]);
-            result.push_back(make_unique<Player>(username, password, xp));
+            const int rp = stoi(data[rpIndex]);
+            result.push_back(make_unique<Player>(username, password, xp, rp));
         }
         catch (const invalid_argument &e) {
             const string username = data[usernameIndex], password = data[passwordIndex];

@@ -1,8 +1,9 @@
-#ifndef TRY1_INVITATION_H
-#define TRY1_INVITATION_H
+#pragma once
+
 #include <string>
 
 #include "Match.h"
+#include "Types.h"
 
 using namespace std;
 
@@ -11,9 +12,9 @@ class Invitation {
     int id;
     string sender;
     string receiver;
-    matchType type;
+    MatchType type;
     public:
-    Invitation(int id, const string& sender, const string& receiver, matchType type)
+    Invitation(int id, const string& sender, const string& receiver, MatchType type)
                 : id(id), sender(sender), receiver(receiver), type(type) {};
     string getSender() const{
         return sender;
@@ -21,10 +22,7 @@ class Invitation {
     string getReceiver() const{
         return receiver;
     }
-    matchType getType() const {
+    MatchType getType() const {
         return type;
     }
 };
-
-
-#endif //TRY1_INVITATION_H

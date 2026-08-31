@@ -1,7 +1,6 @@
-#ifndef TRY1_LOGICSERVICE_H
-#define TRY1_LOGICSERVICE_H
-#include "../DAL/Repository.h"
+#pragma once
 
+#include "../DAL/Repository.h"
 
 class LoginService {
 private:
@@ -13,6 +12,3 @@ private:
     bool registerUser(const string &name, const string &password);
     bool loginUser(const string &name, const string &password);
 };
-
-
-#endif //TRY1_LOGICSERVICE_H
