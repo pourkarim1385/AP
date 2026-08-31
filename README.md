@@ -53,81 +53,43 @@ AP/
 ### 1. Account & Session Management
 
 * Supports dual privilege levels: `normal` (Players) and `adminAccess` (Administrators).
-
-
 * Authentication operations include user registration, login verification, and session logout.
-
-
 * Player profiles track overall wins, losses, Experience Points (XP), Ranked Points (RP), and tier rankings.
-
-
 
 ### 2. Matchmaking & Social System
 
 * **Lobby Status**: Players can toggle their casual ready status (`ready` / `unready`).
-
-
 * **Opponent Discovery**: Filter opponents by match type (`casual` or `ranked`). Ranked opponents are restricted to players sharing the exact rank tier. Results can be sorted in ascending or descending order by points, with case-insensitive alphabetical tie-breaking.
-
-
 * **Invitations**: Send, accept, or reject 1-on-1 match invitations. Accepting an invitation starts the match session.
-
-
 * **User Blocking**: Players can block or unblock target usernames.
-
-
 
 ### 3. Turn-Based Combat Engine
 
 * Matches run in turns where players simultaneously submit actions (`shoot`, `defend`, `reload`).
-
-
 * Combat mechanics resolve shot damage, ammunition counts, and defense states.
-
-
 * Match types:
 * **Casual Match**: Players start with 1 bullet and 1 life. Winning adjusts player XP based on relative score differences.
-
-
 * **Ranked Match**: Players start with base stats (3 bullets, 3 lives) minus any active penalty deductions. Outcomes alter Ranked Points (RP) and rank tiers.
 
 
-
-
 * Match status tracking records complete move histories and remaining resources for both players.
-
-
 
 ### 4. Ranking System
 
 Player tiers scale based on current RP values:
 
 * **Bronze**: $\text{RP} < 1400$
-
 * **Silver**: $1400 \le \text{RP} < 1750$
-
 * **Gold**: $1750 \le \text{RP} < 2250$
-
 * **Platinum**: $\text{RP} \ge 2250$
-
 
 ### 5. Moderation System
 
 * Players can report other users with a specified reason.
-
-
 * Administrators can view pending incident reports, dismiss reports, or issue penalties.
-
-
 * Penalties apply to ranked matches over a set number of games:
-
-
 * **Bullet Penalty**: Reduces starting bullets by 1 to 3.
-
-
 * **Health Penalty**: Reduces starting lives by 1 to 2.
-
-
 
 
 
@@ -142,65 +104,29 @@ The system accepts commands via standard input structured as:
 
 | Command | Method | Required Arguments | Description |
 | --- | --- | --- | --- |
-| `register` | `POST` | `username`, `password` | Register a new player account.
-
- |
-| `login` | `POST` | `username`, `password` | Log into an existing account.
-
- |
-| `logout` | `POST` | *None* | Log out of the current session.
-
- |
-| `casual_match_ready` | `POST` | `status` (`true`/`false`) | Toggle matchmaking readiness.
-
- |
-| `casual_match_opponents` | `GET` | `sort_order` (`asc`/`desc`, optional) | List available casual opponents.
-
- |
-| `ranked_match_opponents` | `GET` | `sort_order` (`asc`/`desc`, optional) | List available ranked opponents in same tier.
-
- |
-| `invitation` | `POST` | `username`, `match_type` (`casual`/`ranked`) | Send a match invitation.
-
- |
-| `received_invitations` | `GET` | *None* | View received match invitations.
-
- |
-| `start_match` | `POST` | `invitation_id` | Accept an invitation and start a match.
-
- |
-| `reject_invitation` | `POST` | `invitation_id` | Reject a received match invitation.
-
- |
-| `action` | `POST` | `action` (`shoot`/`defend`/`reload`) | Submit turn action in an active match.
-
- |
-| `match_status` | `GET` | *None* | View active match status and move history.
-
- |
-| `profile` | `GET` | `username` (optional) | View own or another player's profile stats.
-
- |
-| `report` | `POST` | `username`, `reason` | Report a player for misconduct.
-
- |
-| `block` | `POST` | `username`, `status` (`blocked`/`unblocked`) | Block or unblock a user.
-
- |
+| `register` | `POST` | `username`, `password` | Register a new player account. |
+| `login` | `POST` | `username`, `password` | Log into an existing account. |
+| `logout` | `POST` | *None* | Log out of the current session. |
+| `casual_match_ready` | `POST` | `status` (`true`/`false`) | Toggle matchmaking readiness. |
+| `casual_match_opponents` | `GET` | `sort_order` (`asc`/`desc`, optional) | List available casual opponents. |
+| `ranked_match_opponents` | `GET` | `sort_order` (`asc`/`desc`, optional) | List available ranked opponents in same tier. |
+| `invitation` | `POST` | `username`, `match_type` (`casual`/`ranked`) | Send a match invitation. |
+| `received_invitations` | `GET` | *None* | View received match invitations. |
+| `start_match` | `POST` | `invitation_id` | Accept an invitation and start a match. |
+| `reject_invitation` | `POST` | `invitation_id` | Reject a received match invitation. |
+| `action` | `POST` | `action` (`shoot`/`defend`/`reload`) | Submit turn action in an active match. |
+| `match_status` | `GET` | *None* | View active match status and move history. |
+| `profile` | `GET` | `username` (optional) | View own or another player's profile stats. |
+| `report` | `POST` | `username`, `reason` | Report a player for misconduct. |
+| `block` | `POST` | `username`, `status` (`blocked`/`unblocked`) | Block or unblock a user. |
 
 ### Administrator Commands
 
 | Command | Method | Required Arguments | Description |
 | --- | --- | --- | --- |
-| `reports` | `GET` | *None* | List all pending user reports.
-
- |
-| `dismiss_report` | `POST` | `report_id` | Dismiss a report without penalty.
-
- |
-| `penalty` | `POST` | `report_id`, `type` (`bullet_penalty`/`health_penalty`), `amount`, `number_of_matches` | Issue a gameplay penalty to a reported player.
-
- |
+| `reports` | `GET` | *None* | List all pending user reports. |
+| `dismiss_report` | `POST` | `report_id` | Dismiss a report without penalty. |
+| `penalty` | `POST` | `report_id`, `type` (`bullet_penalty`/`health_penalty`), `amount`, `number_of_matches` | Issue a gameplay penalty to a reported player. |
 
 ---
 
@@ -210,8 +136,6 @@ The system accepts commands via standard input structured as:
 
 * A C++17 (or newer) compatible compiler (`g++`, `clang++`, or MSVC)
 * CMake 3.10+ or GNU Make
-
-
 
 ### Compilation
 
